@@ -5,11 +5,11 @@ import type { ApiResponse } from '../types/response.types.js';
 export class AuthController {
     static async register(req: Request, res: Response) {
         try {
-            const user = await AuthService.register(req.body);
+            const authData = await AuthService.register(req.body);
             const response: ApiResponse = {
                 success: true,
                 message: 'User registered successfully',
-                data: { id: user.id, email: user.email, role: user.role }
+                data: authData
             };
             res.status(201).json(response);
         } catch (error: any) {

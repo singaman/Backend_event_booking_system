@@ -6,14 +6,28 @@ import type { RegisterUserRequest, LoginRequest } from '../types/request.types.j
 import type { AuthResponse } from '../types/response.types.js';
 
 export class AuthService {
-    static async register(data: RegisterUserRequest) {
+    static async register(data: RegisterUserRequest): Promise<AuthResponse> {
         const hashedPassword = await bcrypt.hash(data.password, 10);
         const user = await User.create({
             email: data.email,
             password: hashedPassword,
             role: data.role,
         });
-        return user;
+
+        const token = jwt.sign(
+            { id: user.id, email: user.email, role: user.role },
+            env.jwt.secret as string,
+            { expiresIn: env.jwt.expiresIn as any }
+        );
+
+        return {
+            token,
+            user: {
+                id: user.id,
+                email: user.email,
+                role: user.role,
+            },
+        };
     }
     
     static async login(data: LoginRequest): Promise<AuthResponse> {
