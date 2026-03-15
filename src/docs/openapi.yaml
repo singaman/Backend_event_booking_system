@@ -1,0 +1,197 @@
+openapi: 3.0.3
+info:
+  title: Event Booking System API
+  description: API documentation for the Event Booking System Backend.
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000/api
+    description: Local development server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UserRole:
+      type: string
+      enum: [organizer, customer]
+    
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+
+    RegisterRequest:
+      type: object
+      required: [email, password, role]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+        role:
+          $ref: '#/components/schemas/UserRole'
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    CreateEventRequest:
+      type: object
+      required: [title, description, date, totalSeats]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        date:
+          type: string
+          format: date-time
+        totalSeats:
+          type: integer
+          minimum: 1
+
+    BookTicketRequest:
+      type: object
+      required: [eventId, seatsBooked]
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        seatsBooked:
+          type: integer
+          minimum: 1
+
+paths:
+  /auth/register:
+    post:
+      tags: [Authentication]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered successfully
+        '400':
+          description: Bad request
+
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Login and get token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+        '401':
+          description: Unauthorized
+
+  /events:
+    get:
+      tags: [Events]
+      summary: List all events
+      responses:
+        '200':
+          description: Success
+    post:
+      tags: [Events]
+      summary: Create a new event (Organizer only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEventRequest'
+      responses:
+        '201':
+          description: Event created
+        '403':
+          description: Forbidden
+
+  /events/{id}:
+    get:
+      tags: [Events]
+      summary: Get event by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+        '404':
+          description: Not found
+    put:
+      tags: [Events]
+      summary: Update an event (Organizer only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEventRequest'
+      responses:
+        '200':
+          description: Event updated
+
+  /bookings:
+    post:
+      tags: [Bookings]
+      summary: Book tickets (Customer only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookTicketRequest'
+      responses:
+        '201':
+          description: Booking successful
+
+  /bookings/history:
+    get:
+      tags: [Bookings]
+      summary: Get user booking history (Customer only)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Success
