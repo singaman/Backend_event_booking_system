@@ -78,6 +78,9 @@ components:
           type: integer
           minimum: 1
 
+security:
+  - bearerAuth: []
+
 paths:
   /auth/register:
     post:

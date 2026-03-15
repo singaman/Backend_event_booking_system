@@ -12,6 +12,7 @@ const start = async () => {
         console.log('Database connection has been established successfully.');
 
         // Sync models (In production, use migrations)
+        // Using alter: true to update schema without dropping data
         await sequelize.sync({ alter: true });
         console.log('Database synced.');
 
